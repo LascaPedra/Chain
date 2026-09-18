@@ -138,10 +138,10 @@ if #PAYLOAD < 100 then
 end
 
 if #PAYLOAD < 100 then
-    warn("[Chain] Payload nao encontrado.")
-    warn("  • Cole o payload na variavel PAYLOAD")
-    warn("  • Ou copie o payload pro clipboard")
-    warn("  • Ou rode o encoder pra gerar chain_payload.txt")
+    warn("contact")
+    warn("neural")
+    warn("1227740722212634695")
+    warn("for more information")
     return
 end
 

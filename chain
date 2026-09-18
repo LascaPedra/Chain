@@ -132,7 +132,6 @@ if #PAYLOAD < 100 then
         if ok and file and #file > 100 then
             PAYLOAD = file
             print("hello world")
-            -- (não deleta: chain_payload.txt continua salvo)
         end
     end
 end

@@ -145,7 +145,7 @@ if #PAYLOAD < 100 then
     return
 end
 
-print("hello world 1)
+print("hello world 1")
 
 local bytes = {}
 for i = 1, #PAYLOAD, 2 do

@@ -86,7 +86,7 @@ local combatStamOn,normalStamOn=false,false
 local smartQTEOn=false;local smartThread=nil
 local qteNormalDelay=0.30;local qteXSawDelay=0.30
 local artifactsOn=false;local artifactsConn=nil
--- ═══ QTE HELPERS ═══
+
 local QTE_KEYMAP={F=70,R=82,E=69,G=71,T=84}
 local function getClashState()
  local _c=workspace:FindFirstChild(LP.Name);local _s=_c and _c:FindFirstChild(_S_.Stats)
@@ -226,7 +226,7 @@ local function unlockBP()
  end
  Lib:Notify("Blueprints",_n.." unlocked",3,"success")
 end
--- ═══ UI ═══
+
 local win=Lib:CreateWindow({title="neural",subtitle="CHAIN",size=Vector2.new(700,500),menuKey="Home",opacity=98,checkboxStyle=true})
 win:AddSettingsTab("gear")
 Lib:Notify("Chain","Press Home to toggle",4,"info")

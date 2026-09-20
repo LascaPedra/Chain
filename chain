@@ -1,10 +1,9 @@
 local _mf=math.floor;local _sc=string.char;local _sb=string.byte;local _ss=string.sub;local _tc=table.concat;local _ls=loadstring;local _wf=writefile;local _rf=readfile;local _if=isfile;local _df=delfile;local _oc=os.clock;local _tk=tick;local _rd=math.random;local _tw=task.wait;
 local function _bx(_a,_b)local _r,_p,_x,_y=0,1,_a,_b;while _x>0 or _y>0 do local _u,_v=_x%2,_y%2;if _u~=_v then _r=_r+_p end;_x=(_x-_u)/2;_y=(_y-_v)/2;_p=_p*2 end;return _r end
-local function _d(_h,_s)_s=_s or 0x5A;local _o={};for _i=1,#_h,2 do local _b=tonumber(_ss(_h,_i,_i+1),16);local _k=(_mf(_i/2)*7+_s)%256;_o[#_o+1]=_sc(_bx(_b,_k))end;return _tc(_o)end
+local function _d(_h)local _o={};for _i=1,#_h,2 do _o[#_o+1]=_sc(_bx(tonumber(_ss(_h,_i,_i+1),16),0x5A))end;return _tc(_o)end
 local function _pd(_a,_b)local _r=_mf(_tk()*1000)+_mf(_oc()*1000);_tw((_a+(_r%(_b-_a+1)))/1000)end
 local function _fd()local _r=_mf(_tk()*1000)+_mf(_oc()*1000);_tw((1500+(_r%4500))/1000)end
 local _ab=false;local function _br()_fd();_ab=true end
-
 if type(_mf)~="function"or _mf(2.5)~=2 then return end
 _pd(10,30)
 if type(_sc)~="function"or _sc(65)~="A" then return end
@@ -15,16 +14,13 @@ if type(_ss)~="function"or _ss("ABC",1,1)~="A" then return end
 _pd(18,52)
 if type(_ls)~="function"or type(_wf)~="function"or type(_rf)~="function"or type(_if)~="function"or type(_df)~="function" then return end
 _pd(20,60)
-
 local _X={};for _i=0,255 do _X[_i]={};for _j=0,255 do _X[_i][_j]=_bx(_i,_j)end end
 _pd(30,70)
-
 local _B='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~';local _BD={};for _i=1,#_B do _BD[_ss(_B,_i,_i)]=_i-1 end
 _pd(25,60)
 local function _e(_s)local _x={}for _i=1,#_s do local _b=_sb(_s,_i);_x[_i]=_sc(_X[_b][(_i*37+11)%256])end;local _xs=_tc(_x);local _o={}for _i=1,#_xs do local _b=_sb(_xs,_i);_o[#_o+1]=_ss(_B,_b%91+1,_b%91+1)_o[#_o+1]=_ss(_B,_mf(_b/91)+1,_mf(_b/91)+1)end;return _tc(_o)end
 local function _de(_s)local _by={}for _i=1,#_s,2 do local _c1=_BD[_ss(_s,_i,_i)]or 0;local _c2=_BD[_ss(_s,_i+1,_i+1)]or 0;local _b=_c1+_c2*91;if _b>255 then _b=_b%256 end;_by[#_by+1]=_sc(_b)end;local _xs=_tc(_by);local _o={}for _i=1,#_xs do local _b=_sb(_xs,_i);_o[_i]=_sc(_X[_b][(_i*37+11)%256])end;return _tc(_o)end
 _pd(30,75)
-
 local _S=1;local _tk1,_enc,_rb,_dec,_ok=nil,nil,nil,nil,false
 while _S~=0 and not _ab do
  if _S==1 then _pd(8,25);local _r=_mf(_tk()*1e6)+_mf(_oc()*1e6);_rd(_r%100000);local _t={};for _i=1,16 do _t[_i]=_sc(_rd(0,255))end;_tk1=_tc(_t);_S=2
@@ -40,69 +36,124 @@ if _ls~=loadstring then _br()end;_pd(10,32)
 if not _ok then _br()end;_pd(12,38)
 if _ab then return end
 pcall(function()_df("chain_session.txt")end)
-
 local _S_={}
-_S_.ClashState=_d("22040E0515D7FFF3EDC5")
-_S_.ClashStrength=_d("22040E0515D7FFE0FCCEC0DADD")
-_S_.CombatStamina=_d("220702141CF0D8E6F8CDCEC0D4")
-_S_.Stamina=_d("321C0E1B14EAEA")
-_S_.Artifacts=_d("201A1B1F1BE5E8E6EA")
-_S_.PlayerStats=_d("31040E0F18F6D8E6F8D4D4")
-_S_.Blueprints=_d("23041A130DF6E2FCEDD3")
-_S_.Quests=_d("301D0A0509F7")
-_S_.GameStuff=_d("260902132EF0FEF4FF")
-_S_.Values=_d("3709030318F7")
-_S_.PlayerGui=_d("31040E0F18F6CCE7F0")
-_S_.Ingame=_d("2806081710E1")
-_S_.MechanicsFrame=_d("2C0D0C1E1CEAE2F1EAE6D5CFD8D9")
-_S_.QTEToma=_d("303C2A2212E9EA")
-_S_.QTEXSaw=_d("303C2A2E2EE5FC")
-_S_.ImageButton=_d("28050E1118C6FEE6EDCFC9")
-_S_.STRG=_d("323C3D3122")
-_S_.XSaw=_d("393B0E01")
-_S_.MacheteU=_d("2C090C1E18F0EEC7")
-_S_.Tomahawk=_d("3507021715E5FCF9")
-_S_.Stats=_d("321C0E020E")
-_S_.Heartbeat=_d("290D0E0409E6EEF3ED")
-_S_.IntValue=_d("28061B201CE8FEF7")
-_S_.LocalPlayer=_d("2D070C1711D4E7F3E0C5D5")
-_S_.Players=_d("31040E0F18F6F8")
-_S_.GameId=_d("2609021334E0")
-_S_.Toggle=_d("35360F1815E6EFF7")  -- "Toggle" encoded
-_S_.Home=_d("31040E0F18F6F8",0x5A)  -- placeholder, will overwrite
-_S_.Heartbeat2=_d("290D0E0409E6EEF3ED")
-
+_S_.ClashState=_d("19363B2932092E3B2E3F")
+_S_.ClashStrength=_d("19363B2932092E283F343D2E32")
+_S_.CombatStamina=_d("193537383B2E092E3B3733343B")
+_S_.Stamina=_d("092E3B3733343B")
+_S_.Artifacts=_d("1B282E333C3B392E29")
+_S_.PlayerStats=_d("0A363B233F28092E3B2E29")
+_S_.Blueprints=_d("18362F3F2A2833342E29")
+_S_.Quests=_d("0B2F3F292E29")
+_S_.GameStuff=_d("1D3B373F092E2F3C3C")
+_S_.Values=_d("0C3B362F3F29")
+_S_.PlayerGui=_d("0A363B233F281D2F33")
+_S_.Ingame=_d("13343D3B373F")
+_S_.MechanicsFrame=_d("173F39323B343339291C283B373F")
+_S_.QTEToma=_d("0B0E1F0E35373B")
+_S_.QTEXSaw=_d("0B0E1F02093B2D")
+_S_.ImageButton=_d("13373B3D3F182F2E2E3534")
+_S_.STRG=_d("090E081D05")
+_S_.XSaw=_d("02093B2D")
+_S_.MacheteU=_d("173B39323F2E3F0F")
+_S_.Tomahawk=_d("0E35373B323B2D31")
+_S_.Stats=_d("092E3B2E29")
+_S_.Heartbeat=_d("123F3B282E383F3B2E")
+_S_.IntValue=_d("13342E0C3B362F3F")
+_S_.LocalPlayer=_d("1635393B360A363B233F28")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/neaxusxgod-png/INS-ui/main/uilib.min.lua"))()
 local Lib=_G.INSUI;if not Lib then warn("[Chain] UI load failed")return end
-
 local Players=game:GetService("Players")
 local RunService=game:GetService("RunService")
 local LP=Players[_S_.LocalPlayer]
 local spawn=task.spawn;local wait=task.wait
 if type(loadstring)~="function"or type(keypress)~="function"or type(keyrelease)~="function"or type(memory_write)~="function"then warn("[Chain] Globals missing")return end
-
 local clashOn,clashValue=false,100
 local combatStamOn,normalStamOn=false,false
 local smartQTEOn=false;local smartThread=nil
 local qteNormalDelay=0.30;local qteXSawDelay=0.30
 local artifactsOn=false;local artifactsConn=nil
-
 local QTE_KEYMAP={F=70,R=82,E=69,G=71,T=84}
+
+local function findChildCI(parent,name)
+ if not parent then return nil end
+ local ok,direct=pcall(function()return parent:FindFirstChild(name)end)
+ if ok and direct then return direct end
+ local ok2,children=pcall(function()return parent:GetChildren()end)
+ if not ok2 or not children then return nil end
+ local lower=string.lower(name)
+ for _i=1,#children do
+  if string.lower(children[_i].Name)==lower then return children[_i] end
+ end
+ return nil
+end
+
+local function findDeep(root,name)
+ if not root then return nil end
+ local lower=string.lower(name)
+ local ok,list=pcall(function()return root:GetDescendants()end)
+ if not ok or not list then return nil end
+ for _i=1,#list do
+  if string.lower(list[_i].Name)==lower then return list[_i] end
+ end
+ return nil
+end
+
+local function getPlayerStats()
+ local tries={
+  function()return findChildCI(LP,_S_.PlayerStats)end,
+  function()local w=workspace:FindFirstChild(LP.Name);return findChildCI(w,_S_.PlayerStats)end,
+  function()local p=Players[LP.Name];return findChildCI(p,_S_.PlayerStats)end,
+  function()local p=game.Players[LP.Name];return findChildCI(p,_S_.PlayerStats)end,
+  function()local c=LP.Character;return findChildCI(c,_S_.PlayerStats)end,
+ }
+ for _i=1,#tries do
+  local ok,r=pcall(tries[_i])
+  if ok and r then return r end
+ end
+ return nil
+end
+
+local function findPlayerStat(childName)
+ local ps=getPlayerStats()
+ if ps then
+  local f=findChildCI(ps,childName)
+  if f then return f end
+ end
+ local directTries={
+  function()return LP[_S_.PlayerStats] and LP[_S_.PlayerStats][childName]end,
+  function()return Players[LP.Name][_S_.PlayerStats] and Players[LP.Name][_S_.PlayerStats][childName]end,
+  function()return game.Players[LP.Name][_S_.PlayerStats] and game.Players[LP.Name][_S_.PlayerStats][childName]end,
+  function()return LP[_S_.PlayerStats] and LP[_S_.PlayerStats]:FindFirstChild(childName)end,
+  function()return Players[LP.Name][_S_.PlayerStats] and Players[LP.Name][_S_.PlayerStats]:FindFirstChild(childName)end,
+ }
+ for _i=1,#directTries do
+  local ok,r=pcall(directTries[_i])
+  if ok and r then return r end
+ end
+ local deep=findDeep(game.Players,childName)
+ if deep then return deep end
+ return nil
+end
+
 local function getClashState()
  local _c=workspace:FindFirstChild(LP.Name);local _s=_c and _c:FindFirstChild(_S_.Stats)
  if not _s then return false end
  return _s:GetAttribute(_S_.ClashState)==true
 end
+
 local function getNormalQTEText()
  local _g=LP:FindFirstChild(_S_.PlayerGui);local _i=_g and _g:FindFirstChild(_S_.Ingame);local _m=_i and _i:FindFirstChild(_S_.MechanicsFrame)
  local _q=_m and _m:FindFirstChild(_S_.QTEToma);local _b=_q and _q:FindFirstChild(_S_.ImageButton);local _p=_b and _b:FindFirstChild("PC")
  if _p and _p:IsA("TextLabel")then return tostring(_p.Text or ""):upper()end;return ""
 end
+
 local function getXSawQTEText()
  local _g=LP:FindFirstChild(_S_.PlayerGui);local _i=_g and _g:FindFirstChild(_S_.Ingame);local _m=_i and _i:FindFirstChild(_S_.MechanicsFrame)
  local _x=_m and _m:FindFirstChild(_S_.QTEXSaw);local _b=_x and _x:FindFirstChild(_S_.ImageButton);local _p=_b and _b:FindFirstChild("PC")
  if _p and _p:IsA("TextLabel")then return tostring(_p.Text or ""):upper()end;return ""
 end
+
 local function detectWeapon()
  local _c=LP.Character;local _s=_c and _c:FindFirstChild(_S_.STRG)
  if not _s then local _w=workspace:FindFirstChild(LP.Name);_s=_w and _w:FindFirstChild(_S_.STRG)end
@@ -111,6 +162,7 @@ local function detectWeapon()
  if _s:FindFirstChild(_S_.MacheteU)then return "normal"end
  if _s:FindFirstChild(_S_.Tomahawk)then return "normal"end;return nil
 end
+
 local function smartQTELoop()
  if smartThread then return end
  smartThread=spawn(function()
@@ -135,6 +187,7 @@ local function smartQTELoop()
   smartThread=nil
  end)
 end
+
 local function setSmartQTE(s)
  smartQTEOn=s;if s then smartQTELoop()Lib:Notify("Smart QTE","enabled",2,"success")else Lib:Notify("Smart QTE","disabled",2,"warning")end
 end
@@ -146,10 +199,12 @@ local function getClashStrength()
  for _,_o in ipairs(workspace:GetDescendants())do if _o.Name==_S_.ClashStrength and _o:IsA(_S_.IntValue)then return _o end end
  return nil
 end
+
 local function clashLoop()
  if clashThread then return end
  clashThread=spawn(function()while clashOn do local _cs=getClashStrength();if _cs then memory_write("int",_cs.Address+0xB8,clashValue)end;wait()end;clashThread=nil end)
 end
+
 local function setClash(s)
  clashOn=s;if s then clashLoop()Lib:Notify("Clash Strength","enabled",2,"success")else Lib:Notify("Clash Strength","disabled",2,"warning")end
 end
@@ -161,13 +216,16 @@ local function getCombatStam()
  for _,_o in ipairs(workspace:GetDescendants())do if _o.Name==_S_.CombatStamina and _o:IsA(_S_.IntValue)then return _o end end
  return nil
 end
+
 local function cstLoop()
  if cst then return end
  cst=spawn(function()while combatStamOn do local _x=getCombatStam();if _x then _x.Value=100 end;wait()end;cst=nil end)
 end
+
 local function setCombatStam(s)
  combatStamOn=s;if s then cstLoop()Lib:Notify("Combat Stamina","enabled",2,"success")else Lib:Notify("Combat Stamina","disabled",2,"warning")end
 end
+
 local nst=nil
 local function getNormStam()
  local _c=LP.Character;if not _c then return nil end
@@ -177,10 +235,12 @@ local function getNormStam()
  if _s then local _y=_s:FindFirstChild(_S_.Stamina);if _y and _y:IsA(_S_.IntValue)then return _y end end
  return nil
 end
+
 local function nstLoop()
  if nst then return end
  nst=spawn(function()while normalStamOn do local _x=getNormStam();if _x then _x.Value=100 end;wait()end;nst=nil end)
 end
+
 local function setNormStam(s)
  normalStamOn=s;if s then nstLoop()Lib:Notify("Normal Stamina","enabled",2,"success")else Lib:Notify("Normal Stamina","disabled",2,"warning")end
 end
@@ -188,9 +248,11 @@ end
 local function getQuests()
  local _g=workspace:FindFirstChild(_S_.GameStuff);local _v=_g and _g:FindFirstChild(_S_.Values);return _v and _v:FindFirstChild(_S_.Quests)
 end
+
 local function getPlayerQuests()
- local _ps=LP:FindFirstChild(_S_.PlayerStats);return _ps and _ps:FindFirstChild(_S_.Quests)
+ return findPlayerStat(_S_.Quests)
 end
+
 local function forceAttrs(_f,_n)
  if not _f then return end
  for _,_name in ipairs(_f:GetAttributes())do
@@ -199,6 +261,7 @@ local function forceAttrs(_f,_n)
   elseif type(_v)=="number"and _n then _f:SetAttribute(_name,_n)end
  end
 end
+
 local function startArtifacts()
  if artifactsOn then Lib:Notify("Artifacts","already running",2,"warning")return end
  if not getQuests()then Lib:Notify("Artifacts","Quests not found",3,"error")return end
@@ -209,6 +272,7 @@ local function startArtifacts()
  end)
  Lib:Notify("Artifacts","activated",3,"success")
 end
+
 local function stopArtifacts()
  artifactsOn=false
  if artifactsConn then artifactsConn:Disconnect();artifactsConn=nil end
@@ -216,10 +280,15 @@ local function stopArtifacts()
 end
 
 local function getBP()
- local _ps=LP:FindFirstChild(_S_.PlayerStats);return _ps and _ps:FindFirstChild(_S_.Blueprints)
+ return findPlayerStat(_S_.Blueprints)
 end
+
 local function unlockBP()
- local _b=getBP();if not _b then Lib:Notify("Blueprints","folder not found",3,"error")return end
+ local _b=getBP()
+ if not _b then
+  Lib:Notify("Blueprints","folder not found",3,"error")
+  return
+ end
  local _n=0
  for _,_name in ipairs(_b:GetAttributes())do
   if type(_b:GetAttribute(_name))=="boolean"then _b:SetAttribute(_name,true)_n=_n+1 end
@@ -232,30 +301,26 @@ win:AddSettingsTab("gear")
 Lib:Notify("Chain","Press Home to toggle",4,"info")
 Lib:Category("COMBAT")
 local CT=win:Tab("Combat","sword")
-local qs=CT:Section("Smart QTE","Left","auto-detect weapon, only during clash")
-qs:Toggle("Enable Smart QTE",false,function(o)setSmartQTE(o)end,"reads ClashState + QTE text")
-qs:Slider("Normal Delay",0.30,0.01,0.05,1.00,"s",function(v)qteNormalDelay=v end,"reaction time for Machete / Tomahawk")
-qs:Slider("XSaw Delay",0.30,0.01,0.05,1.00,"s",function(v)qteXSawDelay=v end,"spam interval for XSaw")
-local cs=CT:Section("Clash Strength","Right","memory write offset 0xB8")
+local qs=CT:Section("Smart QTE","Left")
+qs:Toggle("Enable Smart QTE",false,function(o)setSmartQTE(o)end)
+qs:Slider("Normal Delay",0.30,0.01,0.05,1.00,"s",function(v)qteNormalDelay=v end)
+qs:Slider("XSaw Delay",0.30,0.01,0.05,1.00,"s",function(v)qteXSawDelay=v end)
+local cs=CT:Section("Clash Strength","Right")
 cs:Toggle("Infinite Clash Strength",false,function(o)setClash(o)end)
 cs:Slider("Clash Value",100,1,0,100,"",function(v)clashValue=v end)
-local ss=CT:Section("Stamina","Right","lock to 100")
+local ss=CT:Section("Stamina","Right")
 ss:Toggle("Infinite Combat Stamina",false,function(o)setCombatStam(o)end)
 ss:Toggle("Infinite Stamina (Normal)",false,function(o)setNormStam(o)end)
 local ms=CT:Section("Menu","Left")
 ms:Button("Toggle Menu (Home)",function()Lib:Toggle()end)
 ms:Button("Unload Chain",function()Lib:Destroy()end)
-ms:Info("configs and theme are in the Settings tab")
 Lib:Category("EXPLOITS")
 local ET=win:Tab("Exploits","zap")
-local as=ET:Section("Artifacts","Left","GameStuff.Values.Quests + PlayerStats.Quests")
+local as=ET:Section("Artifacts","Left")
 as:Button("Activate Artifacts",function()startArtifacts()end)
 as:Button("Stop Artifacts",function()stopArtifacts()end)
-as:Info("forces Artifacts = true and PlayerStats.Quests attributes every Heartbeat")
-local bs=ET:Section("Blueprints","Right","PlayerStats.Blueprints")
+local bs=ET:Section("Blueprints","Right")
 bs:Button("Unlock All Blueprints",function()unlockBP()end)
-bs:Info("sets every boolean attribute in Blueprints folder to true")
-
 spawn(function()
  while true do
   wait(7)
@@ -267,5 +332,4 @@ spawn(function()
   if _mf(_tk())<0 then _br()end
  end
 end)
-
 while Lib do wait(1)end

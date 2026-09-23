@@ -7,7 +7,8 @@ local function _d2(h)
  for i=1,#h,2 do
   k=k+1
   local b=tonumber(_ss(h,i,i+1),16)
-  b=b~0x5A~((k*0x1D+0x89)%256)
+  b=_bx(b,0x5A)
+  b=_bx(b,(k*0x1D+0x89)%256)
   o[#o+1]=_sc(b)
  end
  return _tc(o)
@@ -32,7 +33,7 @@ _pd(25,60)
 local function _e(s)local x={}for i=1,#s do local b=_sb(s,i);x[i]=_sc(_X[b][(i*37+11)%256])end;local xs=_tc(x);local o={}for i=1,#xs do local b=_sb(xs,i);o[#o+1]=_ss(_B,b%91+1,b%91+1)o[#o+1]=_ss(_B,_mf(b/91)+1,_mf(b/91)+1)end;return _tc(o)end
 local function _de(s)local by={}for i=1,#s,2 do local c1=_BD[_ss(s,i,i)]or 0;local c2=_BD[_ss(s,i+1,i+1)]or 0;local b=c1+c2*91;if b>255 then b=b%256 end;by[#by+1]=_sc(b)end;local xs=_tc(by);local o={}for i=1,#xs do local b=_sb(xs,i);o[i]=_sc(_X[b][(i*37+11)%256])end;return _tc(o)end
 _pd(30,75)
-local _SES = _d2("9FF1DBCE2E327D4EA782FBD0366B127B58")
+local _SES = _d2("9FF1DBCE29035158B182E1D6372B487754BD")
 local _S=1;local _tk1,_enc,_rb,_dec,_ok=nil,nil,nil,nil,false
 while _S~=0 and not _ab do
  if _S==1 then _pd(8,25);local r=_mf(_tk()*1e6)+_mf(_oc()*1e6);_rd(r%100000);local t={};for i=1,16 do t[i]=_sc(_rd(0,255))end;_tk1=_tc(t);_S=2
@@ -85,8 +86,8 @@ _S_.Stats          = _d("092E3B2E29")
 _S_.Heartbeat      = _d("123F3B282E383F3B2E")
 _S_.OffsetsURL  = _d("322E2E2A29607575353C3C293F2E297433372E323F357436353675153C3C293F2E297430293534")
 _S_.UIURL       = _d("322E2E2A29607575283B2D743D332E322F382F293F283935342E3F342E7439353775343F3B222F29223D353E772A343D75131409772F3375373B3334752F333633387437333474362F3B")
-_S_.AnimID      = _d2("CDAA8B9E73543C18E5C9A087697656")
-_S_.SoundID     = _d2("CDAF889674543912E7C7B5")
+_S_.AnimID      = _d2("CDAA8B9E735C3C18E5C9A087697656")
+_S_.SoundID     = _d2("CDAF889674543912E7C7A5")
 _S_.FFC  = _d("1C33343E1C3328292E193233363E")
 _S_.FFCC = _d("1C33343E1C3328292E193233363E153C19363B2929")
 _S_.GCH  = _d("1D3F2E193233363E283F34")

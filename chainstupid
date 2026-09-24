@@ -75,7 +75,7 @@ _S_.Drain          = _d("1E283B3334")
 _S_.Drain_Rate     = _d("1E283B33345F283B2E3F")
 _S_.Stats          = _d("092E3B2E29")
 _S_.Heartbeat      = _d("123F3B282E383F3B2E")
-_S_.OffsetsURL  = _d("322E2E2A29607575353C3C293F2E297433372E323F357436353675153C3C293F2E297430293534")
+_S_.OffsetsHPP     = _d("322E2E2A29607575353C3C293F2E297433372E323F357436353675153C3C293F2E2974302C")
 _S_.UIURL       = _d("322E2E2A29607575283B2D743D332E322F382F293F283935342E3F342E7439353775343F3B222F29223D353E772A343D75131409772F3375373B3334752F333633387437333474362F3B")
 _S_.AnimID      = _d("6B696B63696B68696B6268626B696A")
 _S_.SoundID     = _d("6B6C686B6E636D63696C6D")
@@ -138,20 +138,85 @@ local function _satt(p,n,v) if not p then return end p[_S_.SAT](p,n,v) end
 local function _isa(p,c) if not p then return false end return p[_S_.ISA](p,c) end
 local function _disco(c) if c then pcall(function() c[_S_.DIS](c) end) end end
 
-local off
-pcall(function()
- local r=game:HttpGet(_S_.OffsetsURL)
- off=HttpService:JSONDecode(r).Offsets
-end)
-if not off then off={Sound={IsPlaying=0x130,SoundId=0xB8}} end
-local OFF_SOUND_ISPLAYING=off.Sound.IsPlaying or 0x130
-local OFF_SOUND_SOUNDID=off.Sound.SoundId or 0xB8
-local OFF_ANIMATOR_ACTIVE=0xA80
+
+local _offCache=nil
+local _offSource="fallback"
+
+local function _fetchOffsets()
+ local hpp=nil
+ pcall(function() hpp=game:HttpGet(_S_.OffsetsHPP) end)
+ if not hpp or #hpp<200 then return nil end
+ _offSource="theo-live"
+
+ local out={}
+ local function grab(ns,key)
+  local pat="namespace%s+"..ns.."%s*{[^}]-uintptr_t%s+"..key.."%s*=%s*(0x%x+)"
+  local m=hpp:match(pat)
+  if m then return tonumber(m,16) end
+  return nil
+ end
+ local function grabStr(ns,key)
+  local pat="namespace%s+"..ns.."%s*{[^}]-std::string%s+"..key.."%s*=%s*\"([^\"]+)\""
+  return hpp:match(pat)
+ end
+
+ out.ClientVersion=grabStr("Offsets","ClientVersion")
+ out.AnimationTrack={
+  Animation=grab("AnimationTrack","Animation"),
+  Animator=grab("AnimationTrack","Animator"),
+  IsPlaying=grab("AnimationTrack","IsPlaying"),
+  Looped=grab("AnimationTrack","Looped"),
+  Speed=grab("AnimationTrack","Speed"),
+  TimePosition=grab("AnimationTrack","TimePosition"),
+ }
+ out.Animator={
+  ActiveAnimations=grab("Animator","ActiveAnimations"),
+ }
+ out.Sound={
+  IsPlaying=grab("Sound","IsPlaying"),
+  SoundId=grab("Sound","SoundId"),
+  Looped=grab("Sound","Looped"),
+  Volume=grab("Sound","Volume"),
+ }
+ out.Instance={
+  ClassDescriptor=grab("Instance","ClassDescriptor"),
+  ClassName=grab("Instance","ClassName"),
+  NameContainer=grab("Instance","NameContainer"),
+  Name=grab("Instance","Name"),
+ }
+ return out
+end
+
+local function getOffsets()
+ if _offCache then return _offCache end
+ local off=_fetchOffsets()
+ if off then
+  _offCache=off
+  return off
+ end
+ _offSource="fallback"
+ _offCache={
+  ClientVersion="version-2366ba214ec740ca",
+  AnimationTrack={Animation=0xa8,Animator=0x100,IsPlaying=0x522,Looped=0xd5,Speed=0xc4,TimePosition=0xc8},
+  Animator={ActiveAnimations=0xa80},
+  Sound={IsPlaying=0x130,SoundId=0xb8,Looped=0x12d,Volume=0x120},
+  Instance={ClassDescriptor=0x18,ClassName=0x8,NameContainer=0x70,Name=0x8},
+ }
+ return _offCache
+end
+
+local O=getOffsets()
+local OFF_SOUND_ISPLAYING=O.Sound.IsPlaying or 0x130
+local OFF_SOUND_SOUNDID=O.Sound.SoundId or 0xb8
+local OFF_ANIMATOR_ACTIVE=O.Animator.ActiveAnimations or 0xa80
 local OFF_NODE_NEXT=0x0
 local OFF_NODE_TRACK=0x10
-local OFF_TRACK_ANIM=0xA8
-local OFF_TRACK_TIMEPOS=0xC8
-local OFF_ANIM_ANIMID=0xB0
+local OFF_TRACK_ANIM=O.AnimationTrack.Animation or 0xa8
+local OFF_TRACK_ISPLAYING=O.AnimationTrack.IsPlaying or 0x522
+local OFF_TRACK_TIMEPOS=O.AnimationTrack.TimePosition or 0xc8
+local OFF_ANIM_ANIMID=0xb0
+print("[Chain] Offsets source: ".._offSource.." | Roblox: "..tostring(O.ClientVersion or "?"))
+
 
 local combatStamOn,normalStamOn=false,false
 local winchesterOn=false
@@ -182,6 +247,7 @@ local _QTE={
  retryXsaw=false,
  retryAt=0,
 }
+
 
 local function findChildCI(parent,name)
  if not parent then return nil end
@@ -272,6 +338,7 @@ local function detectWeapon()
  if s:FindFirstChild(_S_.Tomahawk)then return "normal"end
  return nil
 end
+
 
 local QTE_KEYMAP={F=70,R=82,E=69,G=71,T=84}
 local function smartQTELoop()
@@ -407,13 +474,13 @@ local function setSmartQTE(s)
  if s then smartQTELoop()Lib:Notify(_S_.TQTE,_S_.Enabled,2,_S_.Success)else Lib:Notify(_S_.TQTE,_S_.Disabled,2,_S_.Warning)end
 end
 
+
 local _watchdogConn=nil
 local function watchdogLoop()
  if _watchdogConn then return end
  _watchdogConn=RunService[_S_.Heartbeat]:Connect(function()
   if not smartQTEOn then return end
 
-  -- A: thread viva? Se parou de pulsar >0.8s, reinicia
   if (tick()-_QTE.threadAlive)>0.8 then
    smartThread=nil
    _QTE.forceReset=true
@@ -422,7 +489,6 @@ local function watchdogLoop()
    return
   end
 
-  -- C: coerência arma/frame
   local w=detectWeapon()
   if _QTE.lastWeapon~=w then
    _QTE.lastWeapon=w
@@ -432,13 +498,11 @@ local function watchdogLoop()
    return
   end
 
-  -- B: confirmação de registro (só pra XSaw — 1 click por letra)
   if _QTE.lastClickWeapon=="xsaw" and _QTE.lastClickLetter~="" then
    local dt=tick()-_QTE.lastClickAt
    if dt>0.15 then
     local current=getXSawQTEText()
     if current==_QTE.lastClickLetter then
-     -- frame ainda mostra a mesma letra → click não registrou
      _QTE.retryXsaw=true
      _QTE.lastClickLetter=""
     else
@@ -451,6 +515,7 @@ end
 local function stopWatchdog()
  if _watchdogConn then _disco(_watchdogConn);_watchdogConn=nil end
 end
+
 
 local combatStamThread=nil
 local function getCombatStam()
@@ -538,6 +603,7 @@ local function setWinchester(s)
  winchesterOn=s
  if s then winchesterLoop()Lib:Notify(_S_.Winchester,_S_.Enabled,2,_S_.Success)else Lib:Notify(_S_.Winchester,_S_.Disabled,2,_S_.Warning)end
 end
+
 
 local function getChainModel()
  if chainRef and chainRef.Parent then return chainRef end
@@ -651,6 +717,7 @@ local function setAutoDodge(s)
  if s then autoDodgeLoop()Lib:Notify(_S_.TDodge,_S_.Enabled,2,_S_.Success)else Lib:Notify(_S_.TDodge,_S_.Disabled,2,_S_.Warning)end
 end
 
+
 local function getQuests()
  local g=workspace:FindFirstChild(_S_.GameStuff)
  local v=g and g:FindFirstChild(_S_.Values)
@@ -694,6 +761,7 @@ local function unlockBP()
  Lib:Notify(_S_.Blueprints,tostring(n).." unlocked",3,_S_.Success)
 end
 
+
 local win=Lib:CreateWindow({
  title="neural",subtitle="CHAIN",size=Vector2.new(700,520),
  menuKey="Home",opacity=98,checkboxStyle=true,
@@ -727,6 +795,7 @@ as:Button("Activate Artifacts",function()startArtifacts()end)
 as:Button("Stop Artifacts",function()stopArtifacts()end)
 local bs=ET:Section("Blueprints","Right")
 bs:Button("Unlock All Blueprints",function()unlockBP()end)
+
 
 watchdogLoop()
 

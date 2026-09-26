@@ -88,6 +88,7 @@ _S_.GAT1 = _d("1D3F2E1B2E2E2833382F2E3F")
 _S_.SAT  = _d("093F2E1B2E2E2833382F2E3F")
 _S_.ISA  = _d("13291B")
 _S_.DIS  = _d("1E3329393534333F392E")
+_S_.Position = _d("0A3529332E333534")
 _S_.Enabled    = _d("3F343B38363F3E")
 _S_.Disabled   = _d("3E33293B38363F3E")
 _S_.Success    = _d("292F39393F2929")
@@ -137,6 +138,7 @@ local function _gatt(p,n) if not p then return nil end return p[_S_.GAT1](p,n) e
 local function _satt(p,n,v) if not p then return end p[_S_.SAT](p,n,v) end
 local function _isa(p,c) if not p then return false end return p[_S_.ISA](p,c) end
 local function _disco(c) if c then pcall(function() c[_S_.DIS](c) end) end end
+
 
 local _offCache=nil
 local _offSource="fallback"
@@ -224,6 +226,7 @@ local autoDodgeThread=nil
 local dodgeKey=0x51
 local dodgeTotal=0
 local dodgeDelay=0.312
+local DODGE_MAX_DIST=15
 local chainRef=nil
 local animatorRef=nil
 local statsRef=nil
@@ -241,7 +244,6 @@ local _QTE={
  retryLetter="",
  retryWeapon="",
 }
-
 
 local function findChildCI(parent,name)
  if not parent then return nil end
@@ -344,6 +346,35 @@ local function detectWeapon()
  return nil
 end
 
+
+local function _onCharacterAdded()
+ statsRef=nil
+ winchesterBarRef=nil
+ chainRef=nil
+ animatorRef=nil
+ _QTE.forceReset=true
+ _QTE.lastClickLetter=""
+ _QTE.lastClickWeapon=""
+ _QTE.lastWeapon=nil
+ _QTE.retryPending=false
+ _QTE.retryLetter=""
+ _QTE.retryKey=nil
+ _trackTp={}
+end
+
+pcall(function()
+ LocalPlayer.CharacterAdded:Connect(function()
+  spawn(function() wait(1.5); _onCharacterAdded() end)
+ end)
+end)
+
+pcall(function()
+ LocalPlayer.CharacterRemoving:Connect(function()
+  _onCharacterAdded()
+ end)
+end)
+
+
 local QTE_KEYMAP={F=70,R=82,E=69,G=71,T=84}
 
 local function _clickKey(k)
@@ -366,7 +397,6 @@ local function smartQTELoop()
   while smartQTEOn do
    _QTE.threadAlive=tick()
 
-   -- drain retry queue (prioridade máxima)
    if _QTE.retryPending then
     local rLetter=_QTE.retryLetter
     local rWeapon=_QTE.retryWeapon
@@ -511,7 +541,6 @@ local function watchdogLoop()
  _watchdogConn=RunService[_S_.Heartbeat]:Connect(function()
   if not smartQTEOn then return end
 
-  -- A: thread viva?
   if (tick()-_QTE.threadAlive)>0.8 then
    smartThread=nil
    _QTE.forceReset=true
@@ -520,7 +549,6 @@ local function watchdogLoop()
    return
   end
 
-  -- C: coerência arma/frame
   local w=detectWeapon()
   if _QTE.lastWeapon~=w then
    _QTE.lastWeapon=w
@@ -530,13 +558,11 @@ local function watchdogLoop()
    return
   end
 
-  -- B: confirmação de registro (TODOS os QTEs)
   if _QTE.lastClickWeapon~="" and _QTE.lastClickLetter~="" and not _QTE.retryPending then
    local dt=tick()-_QTE.lastClickAt
    if dt>0.15 and dt<0.5 then
     local cur=getFrameTextFor(_QTE.lastClickWeapon)
     if cur==_QTE.lastClickLetter then
-     -- frame ainda mostra a mesma letra → click não pegou
      local k=QTE_KEYMAP[cur:sub(1,1)]
      if k then
       _QTE.retryPending=true
@@ -722,6 +748,21 @@ local function animJustStarted()
  return false
 end
 
+local function chainDistanceFromPlayer()
+ local chain=getChainModel()
+ if not chain then return nil end
+ local cHRP=_ffc(chain,_S_.HRP)
+ if not cHRP then return nil end
+ local me=LocalPlayer.Character
+ if not me then return nil end
+ local mHRP=_ffc(me,_S_.HRP)
+ if not mHRP then return nil end
+ local ok,cPos=pcall(function() return cHRP[_S_.Position] end)
+ local ok2,mPos=pcall(function() return mHRP[_S_.Position] end)
+ if not ok or not ok2 or not cPos or not mPos then return nil end
+ return (cPos-mPos).Magnitude
+end
+
 local function tapDodge()
  pcall(function()keypress(dodgeKey)end)
  pcall(function()keyrelease(dodgeKey)end)
@@ -734,20 +775,24 @@ local function autoDodgeLoop()
   local COOLDOWN=0.6
   while autoDodgeOn do
    if animJustStarted() then
-    local now=tick()
-    if (now-lastFireTick)>=COOLDOWN then
-     lastFireTick=now
-     spawn(function()
-      if dodgeDelay>0 then wait(dodgeDelay)end
-      if autoDodgeOn then
-       dodgeTotal=dodgeTotal+1
-       tapDodge()
-       wait(0.10)
+    local dist=chainDistanceFromPlayer()
+    local closeEnough=(dist==nil) or (dist<=DODGE_MAX_DIST)
+    if closeEnough then
+     local now=tick()
+     if (now-lastFireTick)>=COOLDOWN then
+      lastFireTick=now
+      spawn(function()
+       if dodgeDelay>0 then wait(dodgeDelay)end
        if autoDodgeOn then
+        dodgeTotal=dodgeTotal+1
         tapDodge()
+        wait(0.10)
+        if autoDodgeOn then
+         tapDodge()
+        end
        end
-      end
-     end)
+      end)
+     end
     end
    end
    wait()
@@ -803,6 +848,7 @@ local function unlockBP()
  end
  Lib:Notify(_S_.Blueprints,tostring(n).." unlocked",3,_S_.Success)
 end
+
 
 local win=Lib:CreateWindow({
  title="neural",subtitle="CHAIN",size=Vector2.new(700,520),

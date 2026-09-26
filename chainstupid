@@ -138,7 +138,6 @@ local function _satt(p,n,v) if not p then return end p[_S_.SAT](p,n,v) end
 local function _isa(p,c) if not p then return false end return p[_S_.ISA](p,c) end
 local function _disco(c) if c then pcall(function() c[_S_.DIS](c) end) end end
 
-
 local _offCache=nil
 local _offSource="fallback"
 
@@ -147,7 +146,6 @@ local function _fetchOffsets()
  pcall(function() hpp=game:HttpGet(_S_.OffsetsHPP) end)
  if not hpp or #hpp<200 then return nil end
  _offSource="theo-live"
-
  local out={}
  local function grab(ns,key)
   local pat="namespace%s+"..ns.."%s*{[^}]-uintptr_t%s+"..key.."%s*=%s*(0x%x+)"
@@ -159,7 +157,6 @@ local function _fetchOffsets()
   local pat="namespace%s+"..ns.."%s*{[^}]-std::string%s+"..key.."%s*=%s*\"([^\"]+)\""
   return hpp:match(pat)
  end
-
  out.ClientVersion=grabStr("Offsets","ClientVersion")
  out.AnimationTrack={
   Animation=grab("AnimationTrack","Animation"),
@@ -169,9 +166,7 @@ local function _fetchOffsets()
   Speed=grab("AnimationTrack","Speed"),
   TimePosition=grab("AnimationTrack","TimePosition"),
  }
- out.Animator={
-  ActiveAnimations=grab("Animator","ActiveAnimations"),
- }
+ out.Animator={ ActiveAnimations=grab("Animator","ActiveAnimations") }
  out.Sound={
   IsPlaying=grab("Sound","IsPlaying"),
   SoundId=grab("Sound","SoundId"),
@@ -190,10 +185,7 @@ end
 local function getOffsets()
  if _offCache then return _offCache end
  local off=_fetchOffsets()
- if off then
-  _offCache=off
-  return off
- end
+ if off then _offCache=off; return off end
  _offSource="fallback"
  _offCache={
   ClientVersion="version-2366ba214ec740ca",
@@ -244,8 +236,10 @@ local _QTE={
  lastClickLetter="",
  lastClickWeapon="",
  forceReset=false,
- retryXsaw=false,
- retryAt=0,
+ retryPending=false,
+ retryKey=nil,
+ retryLetter="",
+ retryWeapon="",
 }
 
 
@@ -328,6 +322,17 @@ local function getXSawQTEText()
  if p and _isa(p,_S_.TextLabel)then return tostring(p.Text or ""):upper()end;return ""
 end
 
+local function getFrameTextFor(weapon)
+ if weapon=="xsaw" then return getXSawQTEText() end
+ if weapon=="normal" then return getNormalQTEText() end
+ if weapon=="winchester" then
+  local tx=getXSawQTEText()
+  if tx=="" then tx=getNormalQTEText() end
+  return tx
+ end
+ return ""
+end
+
 local function detectWeapon()
  local c=LocalPlayer.Character;local s=c and c:FindFirstChild(_S_.STRG)
  if not s then local w=workspace:FindFirstChild(LocalPlayer.Name);s=w and w:FindFirstChild(_S_.STRG)end
@@ -339,8 +344,15 @@ local function detectWeapon()
  return nil
 end
 
-
 local QTE_KEYMAP={F=70,R=82,E=69,G=71,T=84}
+
+local function _clickKey(k)
+ if not k then return end
+ pcall(function()keypress(k)end)
+ pcall(function()wait(0.02)end)
+ pcall(function()keyrelease(k)end)
+end
+
 local function smartQTELoop()
  if smartThread then return end
  smartThread=spawn(function()
@@ -353,6 +365,26 @@ local function smartQTELoop()
   local xsawStuckClick=false
   while smartQTEOn do
    _QTE.threadAlive=tick()
+
+   -- drain retry queue (prioridade máxima)
+   if _QTE.retryPending then
+    local rLetter=_QTE.retryLetter
+    local rWeapon=_QTE.retryWeapon
+    local rKey=_QTE.retryKey
+    _QTE.retryPending=false
+    _QTE.retryLetter=""
+    _QTE.retryKey=nil
+    if rKey and rLetter~="" then
+     local cur=getFrameTextFor(rWeapon)
+     if cur==rLetter then
+      _clickKey(rKey)
+      _QTE.lastClickAt=tick()
+      _QTE.lastClickLetter=rLetter
+      _QTE.lastClickWeapon=rWeapon
+     end
+    end
+   end
+
    if _QTE.forceReset then
     normLast=nil
     winLetterNow=""
@@ -423,17 +455,11 @@ local function smartQTELoop()
        local doClick=false
        if not xsawFirstClick then
         if elapsed>=QTE_XSAW_PREDELAY then doClick=true;xsawFirstClick=true end
-       elseif _QTE.retryXsaw then
-        _QTE.retryXsaw=false
-        doClick=true
-        xsawLetterAt=tick()
        elseif not xsawStuckClick then
         if elapsed>=QTE_XSAW_STUCK then doClick=true;xsawStuckClick=true end
        end
        if doClick then
-        pcall(function()keypress(k)end)
-        pcall(function()wait(0.02)end)
-        pcall(function()keyrelease(k)end)
+        _clickKey(k)
         _QTE.lastClickAt=tick()
         _QTE.lastClickLetter=t
         _QTE.lastClickWeapon="xsaw"
@@ -446,27 +472,31 @@ local function smartQTELoop()
      if w=="normal"then t=getNormalQTEText()end
      if t==""then normLast=nil end
      if t~=""and t~=normLast then
+      normLast=t
       local k=QTE_KEYMAP[t:sub(1,1)]
       if k then
-       wait(qteNormalDelay)
-       pcall(function()keypress(k)end)
        spawn(function()
-        wait(0.02)
-        pcall(function()keyrelease(k)end)
+        wait(qteNormalDelay)
+        if smartQTEOn and getClashState() then
+         local cur=getNormalQTEText()
+         if cur==t then
+          _clickKey(k)
+          _QTE.lastClickAt=tick()
+          _QTE.lastClickLetter=t
+          _QTE.lastClickWeapon="normal"
+         end
+        end
        end)
-       _QTE.lastClickAt=tick()
-       _QTE.lastClickLetter=t
-       _QTE.lastClickWeapon="normal"
       end
-      normLast=t
      end
-     wait(0.05)
+     wait(0.03)
     end
    end
   end
   smartThread=nil
  end)
 end
+
 local function setSmartQTE(s)
  smartQTEOn=s
  _QTE.forceReset=true
@@ -481,6 +511,7 @@ local function watchdogLoop()
  _watchdogConn=RunService[_S_.Heartbeat]:Connect(function()
   if not smartQTEOn then return end
 
+  -- A: thread viva?
   if (tick()-_QTE.threadAlive)>0.8 then
    smartThread=nil
    _QTE.forceReset=true
@@ -489,25 +520,33 @@ local function watchdogLoop()
    return
   end
 
+  -- C: coerência arma/frame
   local w=detectWeapon()
   if _QTE.lastWeapon~=w then
    _QTE.lastWeapon=w
    _QTE.forceReset=true
    _QTE.lastClickLetter=""
-   _QTE.retryXsaw=false
+   _QTE.retryPending=false
    return
   end
 
-  if _QTE.lastClickWeapon=="xsaw" and _QTE.lastClickLetter~="" then
+  -- B: confirmação de registro (TODOS os QTEs)
+  if _QTE.lastClickWeapon~="" and _QTE.lastClickLetter~="" and not _QTE.retryPending then
    local dt=tick()-_QTE.lastClickAt
-   if dt>0.15 then
-    local current=getXSawQTEText()
-    if current==_QTE.lastClickLetter then
-     _QTE.retryXsaw=true
-     _QTE.lastClickLetter=""
-    else
-     _QTE.lastClickLetter=""
+   if dt>0.15 and dt<0.5 then
+    local cur=getFrameTextFor(_QTE.lastClickWeapon)
+    if cur==_QTE.lastClickLetter then
+     -- frame ainda mostra a mesma letra → click não pegou
+     local k=QTE_KEYMAP[cur:sub(1,1)]
+     if k then
+      _QTE.retryPending=true
+      _QTE.retryKey=k
+      _QTE.retryLetter=cur
+      _QTE.retryWeapon=_QTE.lastClickWeapon
+     end
     end
+    _QTE.lastClickLetter=""
+    _QTE.lastClickWeapon=""
    end
   end
  end)
@@ -692,7 +731,7 @@ local function autoDodgeLoop()
  if autoDodgeThread then return end
  autoDodgeThread=spawn(function()
   local lastFireTick=0
-  local COOLDOWN=0.8
+  local COOLDOWN=0.6
   while autoDodgeOn do
    if animJustStarted() then
     local now=tick()
@@ -703,6 +742,10 @@ local function autoDodgeLoop()
       if autoDodgeOn then
        dodgeTotal=dodgeTotal+1
        tapDodge()
+       wait(0.10)
+       if autoDodgeOn then
+        tapDodge()
+       end
       end
      end)
     end
@@ -760,7 +803,6 @@ local function unlockBP()
  end
  Lib:Notify(_S_.Blueprints,tostring(n).." unlocked",3,_S_.Success)
 end
-
 
 local win=Lib:CreateWindow({
  title="neural",subtitle="CHAIN",size=Vector2.new(700,520),
